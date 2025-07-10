@@ -4,6 +4,7 @@ require "jet_black"
 describe "bummr update command" do
   let(:session) { JetBlack::Session.new(options: { clean_bundler_env: true }) }
   let(:bummr_gem_path) { File.expand_path("../../", __dir__) }
+  let(:git) { "LANG=en_US git"}
 
   it "updates outdated gems" do
     session.create_file "Gemfile", <<~RUBY
@@ -26,16 +27,16 @@ describe "bummr update command" do
 
     session.run("mkdir -p log")
 
-    expect(session.run("git init .")).
+    expect(session.run("#{git} init .")).
       to be_a_success.and have_stdout("Initialized empty Git repository")
 
-    session.run("git config user.name 'Bummr Test'")
-    session.run("git config user.email 'test@example.com'")
+    session.run("#{git} config user.name 'Bummr Test'")
+    session.run("#{git} config user.email 'test@example.com'")
 
-    expect(session.run("git add . && git commit -m 'Initial commit'")).
+    expect(session.run("#{git} add . && #{git} commit -m 'Initial commit'")).
       to be_a_success.and have_stdout("Initial commit")
 
-    session.run("git checkout -b bummr-branch")
+    session.run("#{git} checkout -b bummr-branch")
 
     update_result = session.run(
       "bundle exec bummr update",
@@ -50,7 +51,7 @@ describe "bummr update command" do
 
     expect(update_result).to have_stdout("Passed the build!")
 
-    expect(session.run("git log")).
+    expect(session.run("#{git} log")).
       to be_a_success.and have_stdout(rake_gem_updated)
 
     expect(session.run("bundle show")).
